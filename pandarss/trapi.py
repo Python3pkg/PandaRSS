@@ -2,8 +2,8 @@
 #coding=utf-8
 import time
 import json
-import urllib  
-import urllib2  
+import urllib.request, urllib.parse, urllib.error  
+import urllib.request, urllib.error, urllib.parse  
 from hashlib import md5
 
 class TrApi:
@@ -15,15 +15,15 @@ class TrApi:
 
     def apirequest(self,apipath,**params):
         try:
-            api_req = { k:v for k,v in params.iteritems() if k not in ('sign')}
+            api_req = { k:v for k,v in params.items() if k not in ('sign')}
             api_req['nonce'] = str(time.time())
-            _args = [p.decode('utf-8') for p in api_req.values() if p is not None]
+            _args = [p.decode('utf-8') for p in list(api_req.values()) if p is not None]
             _args.sort()
             _args.insert(0, self.app.config['system.api_key'])
             api_req['sign'] = md5((''.join(_args)).encode('utf-8')).hexdigest().upper()
             _api_url = '{0}{1}'.format(self.app.config['system.api_url'],apipath)
-            print _api_url
-            response = urllib2.urlopen(urllib2.Request(_api_url,urllib.urlencode(api_req)))  
+            print(_api_url)
+            response = urllib.request.urlopen(urllib.request.Request(_api_url,urllib.parse.urlencode(api_req)))  
             return json.loads(response.read())
         except:
             import traceback

@@ -15,15 +15,15 @@ from bottle import (
     static_file,template, Bottle, run,abort,error,
     request, response,redirect
 )
-from utils import Utils,memcache
-from trapi import TrApi
-from alipay import AliPay,Settings
+from .utils import Utils,memcache
+from .trapi import TrApi
+from .alipay import AliPay,Settings
 
 
 logger = logging.getLogger('pandarss')
 logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(logging.Formatter(u'%(asctime)s %(name)s %(levelname)-4s %(message)s','%b %d %H:%M:%S'))
+handler.setFormatter(logging.Formatter('%(asctime)s %(name)s %(levelname)-4s %(message)s','%b %d %H:%M:%S'))
 logger.addHandler(handler)
 
 app = Bottle()
@@ -33,10 +33,10 @@ app.config['system.template_path'] = os.path.join(os.path.dirname(__file__),'vie
 _config1 = os.path.abspath(os.path.join(os.path.dirname(__file__),'pandarss.conf'))
 _config2 = '/etc/pandarss.conf'
 if os.path.exists(_config2):
-    print 'using config',_config2
+    print('using config',_config2)
     app.config.load_config(_config2)
 elif os.path.exists(_config1):
-    print 'using config',_config1
+    print('using config',_config1)
     app.config.load_config(_config1)
 
 bottle.TEMPLATE_PATH.insert(0, app.config['system.template_path'])
@@ -131,15 +131,15 @@ def do_password():
     newpassword1 = request.params.get('newpassword1')
     newpassword2 = request.params.get('newpassword2')
     if newpassword1 not in [newpassword2]:
-        return abort(400,u"确认密码不匹配")
+        return abort(400,"确认密码不匹配")
     chkresp = trapi.customer_auth(account_number,oldpassword)
     if chkresp['code']>1:
-        return abort(400,u'旧密码校验失败:%s'%chkresp['msg'])
+        return abort(400,'旧密码校验失败:%s'%chkresp['msg'])
     apiresp = trapi.update_password(account_number,newpassword1)
     if apiresp['code'] > 0:
         return abort(400,apiresp['msg'])
     else:
-        return render('message',msg=u'修改密码成功')
+        return render('message',msg='修改密码成功')
 
 @app.route('/account',apply=chklogin)
 def account():
@@ -255,8 +255,8 @@ def verify_order():
             return abort(400,apiresp['msg'])
         return 'success'
     else:
-        logger.info(u"订单无效")
-        return abort(400,u"订单无效")
+        logger.info("订单无效")
+        return abort(400,"订单无效")
 
 
 @app.route('/alipay/return')

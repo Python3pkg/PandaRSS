@@ -2,16 +2,16 @@
 # coding=utf-8
 
 import types
-from urllib import urlencode
+from urllib.parse import urlencode
 from hashlib import md5
-import urllib2  
+import urllib.request, urllib.error, urllib.parse  
 
 class Settings(dict):
     def __getattr__(self, key): 
         try:
             return self[key]
-        except KeyError, k:
-            raise AttributeError, k
+        except KeyError as k:
+            raise AttributeError(k)
     
     def __setattr__(self, key, value): 
         self[key] = value
@@ -19,8 +19,8 @@ class Settings(dict):
     def __delattr__(self, key):
         try:
             del self[key]
-        except KeyError, k:
-            raise AttributeError, k
+        except KeyError as k:
+            raise AttributeError(k)
     
     def __repr__(self):     
         return '<Settings ' + dict.__repr__(self) + '>'
@@ -40,7 +40,7 @@ class AliPay:
         encoding = self.settings.get('ALIPAY_INPUT_CHARSET','utf-8')
         if val is None:
             return ''
-        if isinstance(val, unicode):
+        if isinstance(val, str):
             return val.encode('utf-8',errors)
         elif isinstance(val, str):
             return val.decode('utf-8', errors).encode(encoding, errors)
@@ -52,11 +52,11 @@ class AliPay:
             try:
                 return str(val)
             except:
-                return unicode(val).encode(encoding, errors)
+                return str(val).encode(encoding, errors)
         return val
 
     def make_sign(self, **msg):
-        ks = msg.keys()
+        ks = list(msg.keys())
         ks.sort()
         sign_str = '&'.join([ '%s=%s'%(k,msg[k]) for k in ks ])
         if 'MD5' == self.settings.ALIPAY_SIGN_TYPE:
@@ -76,7 +76,7 @@ class AliPay:
     def make_request_url(self,**params):
         params.pop('sign',None)
         params.pop('sign_type',None)
-        _params = {self.safestr(k):self.safestr(v) for k,v in params.iteritems() if v not in ('', None) }
+        _params = {self.safestr(k):self.safestr(v) for k,v in params.items() if v not in ('', None) }
         _params['sign'] = self.make_sign(**_params)
         _params['sign_type'] = self.settings.ALIPAY_SIGN_TYPE
         return AliPay.GATEWAY + urlencode(_params)
@@ -135,7 +135,7 @@ class AliPay:
         else:
             gateway = 'http://notify.alipay.com/trade/notify_query.do'
 
-        veryfy_result = urllib2.urlopen(urllib2.Request(gateway,urlencode(params))).read()
+        veryfy_result = urllib.request.urlopen(urllib.request.Request(gateway,urlencode(params))).read()
         self.logger.info('veryfy_result:%s'%veryfy_result)
         return veryfy_result.lower().strip() == 'true'
 
@@ -161,7 +161,7 @@ if __name__ == '__main__':
     params = {}
     params['service']       = 'create_direct_pay_by_user'
     params['payment_type']  = '1'
-    params['aaaa'] = u"好"
-    print alipay.make_request_url(**params)
-    print alipay.create_direct_pay_by_user('2323525', u"阿士大夫", u"啥打法是否", 0.01)
+    params['aaaa'] = "好"
+    print(alipay.make_request_url(**params))
+    print(alipay.create_direct_pay_by_user('2323525', "阿士大夫", "啥打法是否", 0.01))
 
